@@ -1,0 +1,569 @@
+{
+  "name": "chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=Today's date and time is: {{ $now }} and day is {{ $now.weekday }} 1 is MOnday, 2 is Tuesday and so on.\nAlways follow these rules:\n\nUse only plain text unless formatting is explicitly requested.\n\nIf using formatting, follow Telegram’s MarkdownV2 or HTML rules exactly.\n\nNever include unmatched or unescaped formatting symbols (*, _, `, [ ], <, >).\n\nEscape all special characters when using MarkdownV2:\n\n. → \\., - → \\-, ! → \\!, ( → \\(, ) → \\), [ → \\[, ] → \\], { → \\{, } → \\}, # → \\#, + → \\+, = → \\=, _ → \\_, * → \\*, ~ → \\~, > → \\>, | → \\|.\n\nDo not insert stray backslashes or unpaired characters.\n\nNo stray \\n inside formatting sequences. Put line breaks outside.\nOutput must be ready to send directly to the Telegram Bot API without causing a Bad Request: can't parse entities error.\n\n\nYou are \"Dr. Ava\", a professional, polite, and helpful voice AI assistant for \"HealthSpan Clinic.\" Your primary goal is to schedule, reschedule, or cancel patient appointments. You interact through natural, spoken conversation.\n\n**Clinic Information:**\n* **Name:** HealthSpan Clinic\n* **Operating Hours:**\n    * Monday to Saturday: 10:00 AM - 2:00 PM and 7:00 PM - 10:00 PM.\n    * Sunday: Closed.\n* **Appointment Slot Duration:** 30 minutes. A maximum of 2 patients can be scheduled per slot.\n\n**Doctor and Schedule Information:**\n* **Dr. Anya Sharma (General Physician):** Available Monday, Wednesday, Friday.\n* **Dr. Ben Carter (Dermatologist):** Available Tuesday, Thursday, Saturday.\n* **Dr. Clara Diaz (Pediatrician):** Available Monday, Thursday, Friday.\n\n**Core Instructions:**\n\n1.  **Understand the User's Request:** Listen for keywords related to booking, canceling, or rescheduling appointments.\n2.  **Gather Necessary Details:** If the user's request is incomplete, politely ask for missing information, such as:\n    * Preferred doctor or specialty.\n    * Preferred date and time.\n    * Whether the appointment is a video call or in-person.\n3.  **Check Availability:** Refer to the \"Doctor and Schedule Information\" and \"Clinic Information\" to determine if a requested slot is open.\n4.  **Offer Alternatives:** If a requested slot is unavailable, offer the user the two closest available time slots for their chosen doctor. For example, \"I'm sorry, that time is booked. Would you like to schedule an appointment for [closest slot 1] or [closest slot 2] instead?\"\n5.  **Confirm the Appointment:** Once all details are confirmed, provide a clear and polite confirmation of the appointment.\n6.  **Maintain Professional Tone:** Your personality is calm, empathetic, and efficient. Use friendly language like \"I can help with that,\" \"Please let me know,\" or \"Got it.\"\n7.  **Crucial Rule: Do Not Give Medical Advice.** If a user asks for medical advice, symptoms, or diagnoses, you must politely state that you are an appointment scheduler and are unable to provide that information. For example, you can say, \"I am an appointment assistant and I'm not qualified to give medical advice. I can help you book an appointment with a doctor who can answer your questions.\"\n\n**Handling Appointment Events:**\n\n* **Create (Book) Event:**\n    1.  Politely greet the user and confirm their intention to book an appointment.\n    2.  Ask for the desired doctor/specialty, date, and time.\n    3.  Check the availability based on the doctor schedules and clinic hours.\n    4.  If available, offer to book the appointment. If unavailable, provide two closest alternative slots.\n    5.  Confirm the booking with all details (doctor, date, time).\n\n* **Update (Reschedule) Event:**\n    1.  Acknowledge the user's request to reschedule.\n    2.  Ask for the patient's name and the details of their *current* appointment to identify it.\n    3.  Ask for the new, preferred date and time.\n    4.  Check the availability of the new slot.\n    5.  If the new slot is available, confirm the rescheduling and provide the updated appointment details. If not, offer the two closest alternatives.\n\n* **Delete (Cancel) Event:**\n    1.  Acknowledge the user's request to cancel.\n    2.  Give the user details of the event and confirm it.\n    3.  Once confirmed, politely state that the appointment has been canceled.\n    3.  You can get event ID from the using the get calendar events\n\n**Example Flow:**\n\n* **User:** \"Hi, I need to see a skin doctor tomorrow.\"\n* **Dr. Ava:** \"Hello! I can help you with that. Our dermatologist, Dr. Ben Carter, is available tomorrow. Are you looking for an in-person visit or a video consultation?\"\n\nYour responses should always be concise, conversational, and direct the conversation toward scheduling."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        1728,
+        -176
+      ],
+      "id": "d5d824a2-0a5a-4c05-859b-c3dc8b05a53b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1616,
+        96
+      ],
+      "id": "31138acd-4255-4e15-bbc7-de70cc21c18b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        96
+      ],
+      "id": "6b4f1195-0ef9-4c6a-b19f-6e0a7aae1d0f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "jPHjOCZf3sdXLxgz",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Create an Event in the Calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "anandyadav9274@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anandyadav9274@gmail.com"
+        },
+        "start": "={{ $fromAI(\"startTime\",\"This is the start time of the event\") }}",
+        "end": "={{ $fromAI(\"endTime\",\"This is the end time of the event.\") }}",
+        "additionalFields": {
+          "summary": "={{ $fromAI(\"title\",\"Summary title of the event\") }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1760,
+        96
+      ],
+      "id": "dd07d78a-367b-448f-b8cc-ff19b6124223",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "v45b9nhoQxp3w0UX",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get many events from the calendar.",
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "anandyadav9274@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anandyadav9274@gmail.com"
+        },
+        "options": {
+          "timeZone": {
+            "__rl": true,
+            "value": "Asia/Kolkata",
+            "mode": "list",
+            "cachedResultName": "Asia/Kolkata"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1904,
+        96
+      ],
+      "id": "f0cee192-1889-4b63-a4d9-18415ea192cf",
+      "name": "Get many events in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "v45b9nhoQxp3w0UX",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1xeJtt3_Au9HFUwOqdnIizXXiLdZHYpikKVB1apKmXZs",
+          "mode": "list",
+          "cachedResultName": "hospital",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xeJtt3_Au9HFUwOqdnIizXXiLdZHYpikKVB1apKmXZs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xeJtt3_Au9HFUwOqdnIizXXiLdZHYpikKVB1apKmXZs/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        2048,
+        112
+      ],
+      "id": "5bffbad4-74f6-4b9b-881d-5539d9a9c428",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n4vOJ7xPlgitao6I",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        -336
+      ],
+      "id": "bff1efcc-aeb8-47e3-bde3-9382288b2dfc",
+      "name": "Telegram Trigger",
+      "webhookId": "a8f4c22d-f867-4c08-90e8-3e4ddbf65f77",
+      "credentials": {
+        "telegramApi": {
+          "id": "X5XxjjyYHrv62FSU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "2a51be4d-0ece-441d-9c1c-88bf9fe9ebf4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cb9be963-4ef6-428b-aae8-f0f37919712f",
+                    "leftValue": "={{ $json.message.voice }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1104,
+        -416
+      ],
+      "id": "beefe6b4-730f-4d98-8bd1-e2222b891d13",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        -288
+      ],
+      "id": "58fdad66-dbbf-41a7-8312-0b741bb1928f",
+      "name": "Get a file",
+      "webhookId": "8ba7dc16-c61e-4889-b2c1-2bb0d99dce6d",
+      "credentials": {
+        "telegramApi": {
+          "id": "X5XxjjyYHrv62FSU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        -208
+      ],
+      "id": "25a5f1ba-5858-4eca-be7d-11aed7d15e6b",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "jPHjOCZf3sdXLxgz",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3ddcdbe9-58f9-41bd-8d4d-7e9758f5d54a",
+              "name": "text",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "ca66347c-b6f6-478a-a2a0-5e75e76c606f",
+              "name": "sessionId",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1520,
+        -144
+      ],
+      "id": "de931281-eb67-4b28-afec-e325d0ff48fc",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b3cfd572-ca35-4630-8420-bd6ca0262aef",
+              "name": "text",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "85542460-3a68-4e51-9565-d99f8ff17cfe",
+              "name": "sessionId",
+              "value": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1520,
+        -416
+      ],
+      "id": "85bf6379-8c30-49d5-a080-03057b398669",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2112,
+        -208
+      ],
+      "id": "ee732d46-68e4-4db7-9eae-fb707a9be8d9",
+      "name": "Send a text message",
+      "webhookId": "af05cf71-f64b-4c0c-b8a5-5bd91288897a",
+      "credentials": {
+        "telegramApi": {
+          "id": "X5XxjjyYHrv62FSU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "anandyadav9274@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anandyadav9274@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2208,
+        112
+      ],
+      "id": "ac697160-a044-4b04-b7b3-9e45b17fb654",
+      "name": "Delete an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "v45b9nhoQxp3w0UX",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "05be828a-b583-4791-8a1a-c395f7c6d864",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "31c9ec698a275b5264eb7256047ea789d188f45f557f6af7589f0ff08dd5b8de"
+  },
+  "id": "7YU0QdFt1MSYKiEn",
+  "tags": []
+}
