@@ -56,9 +56,9 @@
         "toolDescription": "Create an Event in the Calendar",
         "calendar": {
           "__rl": true,
-          "value": "anandyadav9274@gmail.com",
+          "value": "youremail@gmail.com",
           "mode": "list",
-          "cachedResultName": "anandyadav9274@gmail.com"
+          "cachedResultName": "youremail@gmail.com"
         },
         "start": "={{ $fromAI(\"startTime\",\"This is the start time of the event\") }}",
         "end": "={{ $fromAI(\"endTime\",\"This is the end time of the event.\") }}",
@@ -88,9 +88,9 @@
         "operation": "getAll",
         "calendar": {
           "__rl": true,
-          "value": "anandyadav9274@gmail.com",
+          "value": "youremail@gmail.com",
           "mode": "list",
-          "cachedResultName": "anandyadav9274@gmail.com"
+          "cachedResultName": "youremail@gmail.com"
         },
         "options": {
           "timeZone": {
@@ -123,14 +123,14 @@
           "value": "1xeJtt3_Au9HFUwOqdnIizXXiLdZHYpikKVB1apKmXZs",
           "mode": "list",
           "cachedResultName": "hospital",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xeJtt3_Au9HFUwOqdnIizXXiLdZHYpikKVB1apKmXZs/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xeJtt3_AkKVB1apKmXZs/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
           "value": "gid=0",
           "mode": "list",
           "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xeJtt3_Au9HFUwOqdnIizXXiLdZHYpikKVB1apKmXZs/edit#gid=0"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xeJtt3_AkKVB1apKmXZs/edit#gid=0"
         },
         "options": {}
       },
@@ -377,9 +377,9 @@
         "operation": "delete",
         "calendar": {
           "__rl": true,
-          "value": "anandyadav9274@gmail.com",
+          "value": "youremail@gmail.com",
           "mode": "list",
-          "cachedResultName": "anandyadav9274@gmail.com"
+          "cachedResultName": "youremail@gmail.com"
         },
         "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
         "options": {}
